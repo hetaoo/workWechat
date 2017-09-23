@@ -1,6 +1,7 @@
 package com.ixxjd.spider;
 
 import com.ixxjd.utils.Constants;
+import com.ixxjd.utils.ErrorCode;
 import com.ixxjd.utils.UrlMapConvertUtil;
 import com.ixxjd.utils.http.HttpClientUtil;
 import com.ixxjd.utils.http.exception.MethodNotSupportException;
@@ -9,6 +10,8 @@ import com.ixxjd.utils.http.request.RequestMethod;
 import com.ixxjd.utils.http.request.UrlEncodedFormRequest;
 import com.ixxjd.utils.http.response.Response;
 import com.xiaoleilu.hutool.http.Header;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.cookie.Cookie;
 import org.jsoup.Jsoup;
@@ -31,10 +34,13 @@ public class SpiderNewCoderQuestion {
     private static final String REFERER = "https://www.nowcoder.com/intelligentTest";
 
     public void uriChain(List<Cookie> cookies) throws MethodNotSupportException {
+        if (CollectionUtils.isEmpty(cookies)) {
+            throw new RuntimeException(ErrorCode.COOKIES_NULL.getDesc());
+        }
+
         Map<String, Object> questionUrl = getQuestionUrl(cookies);
         List<String> qIdList = parseQuestionId(questionUrl);
         preProcessParse(questionUrl,qIdList);
-
     }
 
     /**
@@ -78,6 +84,10 @@ public class SpiderNewCoderQuestion {
     }
 
     private List<String> parseQuestionId(Map<String,Object> urlCookiesMap) throws MethodNotSupportException {
+        if (MapUtils.isEmpty(urlCookiesMap)) {
+            throw new RuntimeException(ErrorCode.COOKIES_NULL.getDesc());
+        }
+
         List<String> result = new ArrayList<String>();
 
         //构建请求头
@@ -107,6 +117,14 @@ public class SpiderNewCoderQuestion {
         return result;
     }
 
+    public void processQuesiton(Map<String,Object> urlCookiesMap,List<String> qIdList){
+        if (MapUtils.isEmpty(urlCookiesMap)) {
+            throw new RuntimeException(ErrorCode.COOKIES_NULL.getDesc());
+        }
+
+
+
+    }
     /**
      * 解析前处理
      */

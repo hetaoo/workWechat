@@ -10,7 +10,7 @@ import us.codecraft.webmagic.selector.Selectable;
 
 /**
  * @author hetaoo
- * @Description  解析牛客网问题结构和答案分析
+ * @Description  解析牛客网问题
  * @Date 2017/9/22
  */
 public class NewCoderQuestionPageProcessor implements PageProcessor {
@@ -25,6 +25,7 @@ public class NewCoderQuestionPageProcessor implements PageProcessor {
         String question = select.text();
 
         // 2.获取答案
+
 
         // 3.获取正确结果
 

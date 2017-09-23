@@ -10,6 +10,7 @@ import com.ixxjd.utils.http.response.Response;
 import com.xiaoleilu.hutool.http.Header;
 import org.apache.http.cookie.Cookie;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,14 +41,17 @@ public class NewCoderLogin {
         paramMap.put("pwd",PWD);
         paramMap.put("remember",REMEMBER);
 
-
         UrlEncodedFormRequest request = new UrlEncodedFormRequest(URL, RequestMethod.POST);
         request.addHeaders(headMap);
         request.addUrlParams(paramMap);
         request.setUseSSL(true);
         Response response = HttpClientUtil.doRequestInString(request);
 
-        List<Cookie> cookies = response.getCookieStore();
+        List<Cookie> cookies = Collections.emptyList();
+        if (response.getStatusCode() == 200) {
+            cookies = response.getCookieStore();
+        }
+
 
         SpiderNewCoderQuestion newCoderQuestion = new SpiderNewCoderQuestion();
         newCoderQuestion.uriChain(cookies);
