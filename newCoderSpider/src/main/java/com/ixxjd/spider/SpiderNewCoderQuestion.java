@@ -5,6 +5,7 @@ import com.ixxjd.utils.ErrorCode;
 import com.ixxjd.utils.UrlMapConvertUtil;
 import com.ixxjd.utils.http.HttpClientUtil;
 import com.ixxjd.utils.http.exception.MethodNotSupportException;
+
 import com.ixxjd.utils.http.request.Request;
 import com.ixxjd.utils.http.request.RequestMethod;
 import com.ixxjd.utils.http.request.UrlEncodedFormRequest;
@@ -12,7 +13,6 @@ import com.ixxjd.utils.http.response.Response;
 import com.xiaoleilu.hutool.http.Header;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.cookie.Cookie;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -40,6 +40,7 @@ public class SpiderNewCoderQuestion {
 
         Map<String, Object> questionUrl = getQuestionUrl(cookies);
         List<String> qIdList = parseQuestionId(questionUrl);
+//        processQuesiton(questionUrl,qIdList);
         preProcessParse(questionUrl,qIdList);
     }
 
@@ -121,9 +122,25 @@ public class SpiderNewCoderQuestion {
         if (MapUtils.isEmpty(urlCookiesMap)) {
             throw new RuntimeException(ErrorCode.COOKIES_NULL.getDesc());
         }
+        String url = urlCookiesMap.get("url").toString();
+        Map<String, Object> urlParams = UrlMapConvertUtil.getUrlParams(url.split("\\?")[1]);
+        String tid = (String) urlParams.get("tid");
+        String pid = (String) urlParams.get("pid");
 
+        // 构建spider
+        Spider spider = Spider.create(new NewCoderQuestionPageProcessor());
+        Site site = spider.getSite();
 
+        // 设置cookie
+        for (Cookie cookie : (List<Cookie>)urlCookiesMap.get("cookies")){
+            site.addCookie(cookie.getName(),cookie.getValue());
+        }
+        // 设置抓取url
+        for (String qId : qIdList) {
+            spider.addUrl("https://www.nowcoder.com/question/next?pid="+pid+"&qid="+qId+"&tid=" + tid);
+        }
 
+        spider.thread(30).run();
     }
     /**
      * 解析前处理
@@ -137,14 +154,13 @@ public class SpiderNewCoderQuestion {
         // 构建spider
         Spider spider = Spider.create(new NewCoderQuestionPageProcessor());
         Site site = spider.getSite();
-        // 设置cookie
+
+        // 设置cookie  用于请求
         for (Cookie cookie : (List<Cookie>)urlCookiesMap.get("cookies")){
             site.addCookie(cookie.getName(),cookie.getValue());
         }
         // 设置抓取url
-        Iterator<String> iterator = qIdList.iterator();
-        while (iterator.hasNext()) {
-            String qid = iterator.next();
+        for (String qid : qIdList) {
             spider.addUrl("https://www.nowcoder.com/test/question/done?tid="+tid+"&qid="+qid);
         }
         // 开启30个线程抓取并启动
