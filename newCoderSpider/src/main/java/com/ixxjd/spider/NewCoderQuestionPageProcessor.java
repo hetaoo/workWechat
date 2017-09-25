@@ -1,5 +1,6 @@
 package com.ixxjd.spider;
 
+import com.ixxjd.domain.Question;
 import com.ixxjd.utils.UrlMapConvertUtil;
 import com.ixxjd.utils.http.HttpClientUtil;
 import com.ixxjd.utils.http.exception.MethodNotSupportException;
@@ -16,6 +17,7 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,12 @@ import java.util.Map;
  * @Date 2017/9/22
  */
 public class NewCoderQuestionPageProcessor implements PageProcessor {
+
     private Site site = Site.me().setRetryTimes(3).setSleepTime(100).setCycleRetryTimes(5).setTimeOut(60 * 1000);
+
+    private static String SINGLE = "[单选题]";
+
+    private static String MULTIPLE = "[多选题]";
 
     @Override
     public void process(Page page) {
@@ -34,13 +41,13 @@ public class NewCoderQuestionPageProcessor implements PageProcessor {
 
         // 1.获取题目
         Elements selectElement = root.getElementsByClass("question-main");
-        String question = selectElement.text();
-        System.out.println(question);
+        String title = selectElement.text();
 
         // 2.获取选项
         Elements slectionElements = root.select("div.result-answer-item > pre");
+        List<String> slections = new ArrayList<>();
         for (Element selection : slectionElements) {
-            System.out.println(selection.text());
+            slections.add(selection.text());
         }
 
         // 3.获取正确答案
@@ -50,7 +57,25 @@ public class NewCoderQuestionPageProcessor implements PageProcessor {
         answer = answer.split("正确答案: ")[1].replace(" ","").replace(" ",",").trim();
         String[] answers = answer.split(",");
 
-        System.out.println(answers.length + " " + Arrays.toString(answers));
+        // 4.问题提示
+        if (answers.length == 1){
+            title = SINGLE + " " + title;
+        }else {
+            title = MULTIPLE + " " + title;
+        }
+
+        // 5. 拼装返回参数
+        String url = page.getRequest().getUrl();
+        Map<String, Object> urlParams = UrlMapConvertUtil.getUrlParams(url.split("\\?")[1]);
+        String qid = (String) urlParams.get("qid");
+
+        Question question = new Question();
+        question.setqId(qid);
+        question.setTitle(title);
+        question.setSelections(slections);
+        question.setAnswers(answers);
+
+        page.putField("result",question);
 
         // 4.获取评论
         // 4.1 获取推荐评论
@@ -71,8 +96,6 @@ public class NewCoderQuestionPageProcessor implements PageProcessor {
 //            Response response = HttpClientUtil.doRequestInString(request);
 //            System.out.println(response.getResponseText());
 //        }
-
-
     }
 
     @Override
