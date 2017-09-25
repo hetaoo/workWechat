@@ -164,6 +164,6 @@ public class SpiderNewCoderQuestion {
             spider.addUrl("https://www.nowcoder.com/test/question/done?tid="+tid+"&qid="+qid);
         }
         // 开启30个线程抓取并启动
-        spider.thread(30).run();
+        spider.addPipeline(new NewCoderQuestionPagePipeline()).thread(30).run();
     }
 }

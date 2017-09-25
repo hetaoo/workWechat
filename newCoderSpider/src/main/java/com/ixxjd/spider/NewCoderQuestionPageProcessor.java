@@ -33,11 +33,17 @@ public class NewCoderQuestionPageProcessor implements PageProcessor {
 
     private static String SINGLE = "[单选题]";
 
-    private static String MULTIPLE = "[多选题]";
+    private static String MULTIPLE = "[不定项选择题]";
 
     @Override
     public void process(Page page) {
         Document root = Jsoup.parse(page.getHtml().toString());
+
+        // 找出题型含有图片题目
+        Elements img = root.select("div.question-main > div > img");
+        if (img.size() > 0) {
+            return;  // 暂时不处理含有图片的题型
+        }
 
         // 1.获取题目
         Elements selectElement = root.getElementsByClass("question-main");
@@ -57,7 +63,7 @@ public class NewCoderQuestionPageProcessor implements PageProcessor {
         answer = answer.split("正确答案: ")[1].replace(" ","").replace(" ",",").trim();
         String[] answers = answer.split(",");
 
-        // 4.问题提示
+        // 4.添加问题提示
         if (answers.length == 1){
             title = SINGLE + " " + title;
         }else {
