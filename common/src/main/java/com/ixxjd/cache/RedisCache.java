@@ -3,7 +3,7 @@ package com.ixxjd.cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * Created by hetaoo on 2017/5/18.
  *  @description 常规操作
  */
-@Component
+@Repository
 public class RedisCache {
 
     @Autowired
@@ -105,5 +105,14 @@ public class RedisCache {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * 随机获取数据
+     * @return
+     */
+    public Object randomData(){
+        String key = (String) redisTemplate.randomKey();
+        return get(key);
     }
 }

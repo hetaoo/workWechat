@@ -18,6 +18,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 
@@ -28,10 +30,14 @@ import java.util.*;
  * @Description 爬取牛客网题目
  * @Date 2017/9/15
  */
+@Component
 public class SpiderNewCoderQuestion {
     private static final String URL = "https://www.nowcoder.com/makePaper";
 
     private static final String REFERER = "https://www.nowcoder.com/intelligentTest";
+
+    @Autowired
+    private NewCoderQuestionPagePipeline newCoderQuestionPagePipeline;
 
     public void uriChain(List<Cookie> cookies) throws MethodNotSupportException {
         if (CollectionUtils.isEmpty(cookies)) {
@@ -40,7 +46,6 @@ public class SpiderNewCoderQuestion {
 
         Map<String, Object> questionUrl = getQuestionUrl(cookies);
         List<String> qIdList = parseQuestionId(questionUrl);
-//        processQuesiton(questionUrl,qIdList);
         preProcessParse(questionUrl,qIdList);
     }
 
@@ -118,30 +123,6 @@ public class SpiderNewCoderQuestion {
         return result;
     }
 
-    public void processQuesiton(Map<String,Object> urlCookiesMap,List<String> qIdList){
-        if (MapUtils.isEmpty(urlCookiesMap)) {
-            throw new RuntimeException(ErrorCode.COOKIES_NULL.getDesc());
-        }
-        String url = urlCookiesMap.get("url").toString();
-        Map<String, Object> urlParams = UrlMapConvertUtil.getUrlParams(url.split("\\?")[1]);
-        String tid = (String) urlParams.get("tid");
-        String pid = (String) urlParams.get("pid");
-
-        // 构建spider
-        Spider spider = Spider.create(new NewCoderQuestionPageProcessor());
-        Site site = spider.getSite();
-
-        // 设置cookie
-        for (Cookie cookie : (List<Cookie>)urlCookiesMap.get("cookies")){
-            site.addCookie(cookie.getName(),cookie.getValue());
-        }
-        // 设置抓取url
-        for (String qId : qIdList) {
-            spider.addUrl("https://www.nowcoder.com/question/next?pid="+pid+"&qid="+qId+"&tid=" + tid);
-        }
-
-        spider.thread(30).run();
-    }
     /**
      * 解析前处理
      */
@@ -164,6 +145,6 @@ public class SpiderNewCoderQuestion {
             spider.addUrl("https://www.nowcoder.com/test/question/done?tid="+tid+"&qid="+qid);
         }
         // 开启30个线程抓取并启动
-        spider.addPipeline(new NewCoderQuestionPagePipeline()).thread(30).run();
+        spider.addPipeline(newCoderQuestionPagePipeline).thread(30).run();
     }
 }

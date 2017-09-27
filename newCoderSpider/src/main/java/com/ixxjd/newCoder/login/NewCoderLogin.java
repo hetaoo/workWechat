@@ -9,6 +9,9 @@ import com.ixxjd.utils.http.request.UrlEncodedFormRequest;
 import com.ixxjd.utils.http.response.Response;
 import com.xiaoleilu.hutool.http.Header;
 import org.apache.http.cookie.Cookie;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ import java.util.Map;
  * @Description 牛客网模拟登录
  * @Date 2017/9/15
  */
+@Component
 public class NewCoderLogin {
     private static final String EMAIL = "tao.he@hand-china.com";
     private static final String PWD = "123456qq";
@@ -29,6 +33,10 @@ public class NewCoderLogin {
 
     private static final String REFERER = "https://www.nowcoder.com/login?callBack=https%3A%2F%2Fwww.nowcoder.com%2Fprofile%2F9084877";
 
+    @Autowired
+    private SpiderNewCoderQuestion spiderNewCoderQuestion;
+
+    @Scheduled(fixedRate = 1000 * 60 * 60)
     public boolean execute() throws MethodNotSupportException {
         Map<String,String> headMap = new HashMap<String,String>();
         headMap.put(Header.USER_AGENT.toString(), Constants.USER_AGENT);
@@ -52,9 +60,7 @@ public class NewCoderLogin {
             cookies = response.getCookieStore();
         }
 
-
-        SpiderNewCoderQuestion newCoderQuestion = new SpiderNewCoderQuestion();
-        newCoderQuestion.uriChain(cookies);
+        spiderNewCoderQuestion.uriChain(cookies);
 
         return false;
     }
